@@ -1,0 +1,10 @@
+{
+  "watch": ["src"],
+  "ignore": [
+    "node_modules",
+    "prisma",
+    ".git"
+  ],
+  "ext": "js,json",
+  "legacyWatch": true
+}

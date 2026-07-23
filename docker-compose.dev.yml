@@ -1,0 +1,153 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      VITE_GATEWAY_URL: http://localhost:${GATEWAY_PORT}
+    command: npm run dev
+    networks:
+      - notes-network
+  
+  redis:
+    image: redis:7-alpine
+    container_name: redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - notes-network
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile.dev
+    container_name: gateway-dev
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    volumes:
+      - ./gateway:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: ${GATEWAY_PORT}
+      AUTH_SERVICE_URL: http://auth-service:${AUTH_SERVICE_PORT}
+      NOTES_SERVICE_URL: http://notes-service:${NOTES_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - auth-service
+      # - notes-service
+      - redis
+    command: npm run dev
+    networks:
+      - notes-network
+
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile.dev
+    container_name: auth-service-dev
+    restart: unless-stopped
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: ${AUTH_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://${AUTH_DB_USER}:${AUTH_DB_PASSWORD}@auth-db:5432/${AUTH_DB_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - auth-db
+      - redis
+    command: npm run dev
+    networks:
+      - notes-network
+
+
+  auth-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: auth-db-dev
+    restart: unless-stopped
+    ports:
+      - "${AUTH_DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - notes-network
+
+
+  notes-service:
+    build:
+      context: ./notes-service
+      dockerfile: Dockerfile.dev
+    container_name: notes-service-dev
+    restart: unless-stopped
+    ports:
+      - "${NOTES_SERVICE_PORT}:${NOTES_SERVICE_PORT}"
+    volumes:
+      - ./notes-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: ${NOTES_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://${NOTES_DB_USER}:${NOTES_DB_PASSWORD}@notes-db:5432/${NOTES_DB_NAME}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - notes-db
+      - redis
+    command: npm run dev
+    networks:
+      - notes-network
+
+
+  notes-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: notes-db-dev
+    restart: unless-stopped
+    ports:
+      - "${NOTES_DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${NOTES_DB_USER}
+      POSTGRES_PASSWORD: ${NOTES_DB_PASSWORD}
+      POSTGRES_DB: ${NOTES_DB_NAME}
+    volumes:
+      - notes-db-data:/var/lib/postgresql/data
+    networks:
+      - notes-network
+
+
+networks:
+  notes-network:
+    driver: bridge
+
+
+volumes:
+  auth-db-data:
+  notes-db-data:
+  redis-data:

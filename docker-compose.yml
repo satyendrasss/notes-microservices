@@ -1,0 +1,88 @@
+# version: "3.9"
+
+services:
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    environment:
+      PORT: ${GATEWAY_PORT}
+      AUTH_SERVICE_URL: http://auth-service:${AUTH_SERVICE_PORT}
+      NOTES_SERVICE_URL: http://notes-service:${NOTES_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - auth-service
+      - notes-service
+    networks:
+      - notes-network
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    environment:
+      PORT: ${AUTH_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://${AUTH_DB_USER}:${AUTH_DB_PASSWORD}@auth-db:5432/${AUTH_DB_NAME}
+    depends_on:
+      - auth-db
+    networks:
+      - notes-network
+
+  auth-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: auth-db
+    restart: unless-stopped
+    ports:
+      - "${AUTH_DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - notes-network
+
+  notes-service:
+    build: ./notes-service
+    container_name: notes-service
+    restart: unless-stopped
+    ports:
+      - "${NOTES_SERVICE_PORT}:${NOTES_SERVICE_PORT}"
+    environment:
+      PORT: ${NOTES_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://${NOTES_DB_USER}:${NOTES_DB_PASSWORD}@notes-db:5432/${NOTES_DB_NAME}
+    depends_on:
+      - notes-db
+    networks:
+      - notes-network
+
+  notes-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: notes-db
+    restart: unless-stopped
+    ports:
+      - "${NOTES_DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${NOTES_DB_USER}
+      POSTGRES_PASSWORD: ${NOTES_DB_PASSWORD}
+      POSTGRES_DB: ${NOTES_DB_NAME}
+    volumes:
+      - notes-db-data:/var/lib/postgresql/data
+    networks:
+      - notes-network
+
+networks:
+  notes-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  notes-db-data:

@@ -1,0 +1,42 @@
+# Auth Service
+/auth-service/node_modules
+/auth-service/src/generated/prisma
+/auth-service/.env
+
+# Notes Service
+/notes-service/node_modules
+/notes-service/src/generated/prisma
+/notes-service/.env
+
+# Gateway
+/gateway/node_modules
+/gateway/.env
+
+# Frontend
+/frontend/node_modules
+
+.env
+
+
+
+# Logs
+**/logs
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Build output
+**/dist
+**/build
+
+# Environment files
+**/.env.local
+**/.env.production
+**/.env.development
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum NoteStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+model Note {
+  id          String      @id @default(uuid())
+  userId      String
+  title       String
+  content     String
+  status      NoteStatus  @default(ACTIVE)
+  isPinned    Boolean     @default(false)
+  isFavorite  Boolean     @default(false)
+  isArchived  Boolean     @default(false)
+  deletedAt   DateTime?
+  
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tags        NoteTag[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("notes")
+}
+
+model Tag {
+  id        String      @id @default(uuid())
+  name      String
+  icon      String?
+  userId    String
+  createdAt DateTime    @default(now())
+
+  notes     NoteTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("tags")
+}
+
+model NoteTag {
+  noteId      String
+  tagId       String
+
+  note         Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag          Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@map("note_tags")
+}
