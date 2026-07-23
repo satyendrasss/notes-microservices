@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { formatFullDateTime } from "../utils/dateUtils";
 import TagBadge from "./tags/TagBadge";
-import { Archive, Pin, Star, Trash2 } from "lucide-react";
+import { Archive, Pin, Plus, Star, Trash2 } from "lucide-react";
 
 export default function NotesList({ notes = [], currentSection, selectedNote, setSelectedNote, addNewNote }) {
   const [search, setSearch] = useState("");
@@ -82,7 +82,7 @@ export default function NotesList({ notes = [], currentSection, selectedNote, se
     <div className="flex h-full flex-col bg-white text-zinc-900 transition-colors dark:bg-zinc-950 dark:text-white">
 
       {/* Header */}
-      <div className="border-b border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 p-3 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
 
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -95,12 +95,16 @@ export default function NotesList({ notes = [], currentSection, selectedNote, se
             </p>
           </div>
 
+          
           <button
             onClick={addNewNote}
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-lg font-semibold text-white transition hover:bg-blue-700"
-          >
-            +
+            type="button"
+            aria-label="Add new note"
+            title="Add new note"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-950          ">
+            <Plus size={20} strokeWidth={2.5} />
           </button>
+
         </div>
 
         <input
@@ -108,7 +112,7 @@ export default function NotesList({ notes = [], currentSection, selectedNote, se
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={`Search ${currentSection.toLowerCase()}...`}
-          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+          className="w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-blue-500 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:bg-zinc-900"
         />
       </div>
 
