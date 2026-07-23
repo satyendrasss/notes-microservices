@@ -15,6 +15,9 @@
 # Frontend
 /frontend/node_modules
 
+# Docs
+/docs
+
 .env
 
 
